@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Note
+from .models import Team
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -13,13 +13,13 @@ class UserSerializer(serializers.ModelSerializer):
         return User.objects.create_user(**validated_data)
 
 
-class NoteSerializer(serializers.ModelSerializer):
+class TeamSerializer(serializers.ModelSerializer):
     name = serializers.CharField(min_length=5, max_length=20)
     member_one = serializers.CharField(min_length=5, max_length=20)
     member_two = serializers.CharField(min_length=5, max_length=20)
 
     class Meta:
-        model = Note
+        model = Team
         fields = ["id", "name", "member_one", "member_two", "created_at", "author"]
         extra_kwargs = {"author": {"read_only": True}}
 
@@ -28,22 +28,22 @@ class NoteSerializer(serializers.ModelSerializer):
         member_one = data.get("member_one")
         member_two = data.get("member_two")
 
-        if Note.objects.filter(name=name).exists():
+        if Team.objects.filter(name=name).exists():
             raise serializers.ValidationError(
                 {"error": "This team name is already in use."}
             )
 
         if (
-            Note.objects.filter(member_one=member_one).exists()
-            or Note.objects.filter(member_two=member_one).exists()
+            Team.objects.filter(member_one=member_one).exists()
+            or Team.objects.filter(member_two=member_one).exists()
         ):
             raise serializers.ValidationError(
                 {"error": f"{member_one} is already part of a team."}
             )
 
         if (
-            Note.objects.filter(member_one=member_two).exists()
-            or Note.objects.filter(member_two=member_two).exists()
+            Team.objects.filter(member_one=member_two).exists()
+            or Team.objects.filter(member_two=member_two).exists()
         ):
             raise serializers.ValidationError(
                 {"error": f"{member_two} is already part of a team."}
