@@ -24,6 +24,11 @@ class TeamSerializer(serializers.ModelSerializer):
         extra_kwargs = {"author": {"read_only": True}}
 
     def validate(self, data):
+        if Team.objects.count() >= 32:
+            raise serializers.ValidationError(
+                {"error": "Maximum number of teams reached."}
+            )
+
         name = data.get("name")
         member_one = data.get("member_one")
         member_two = data.get("member_two")
