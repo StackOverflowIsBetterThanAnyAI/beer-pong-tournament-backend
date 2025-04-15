@@ -25,8 +25,7 @@ class TeamDelete(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Team.objects.filter(author=user)
+        return Team.objects.all()
 
 
 class CreateUserView(generics.CreateAPIView):
