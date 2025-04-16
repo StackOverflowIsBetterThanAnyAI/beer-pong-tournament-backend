@@ -8,6 +8,7 @@ urlpatterns = [
     path(
         "groups/bulk/",
         views.TournamentGroupBulkCreate.as_view(),
-        name="group-bulk-create",
+        name="group-bulk",
     ),
+    path("groups/delete/", views.TournamentGroupDelete.as_view(), name="group-delete"),
 ]

@@ -81,6 +81,14 @@ class TournamentGroupBulkCreate(APIView):
         return Response(created_groups, status=status.HTTP_201_CREATED)
 
 
+class TournamentGroupDelete(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        TournamentGroup.objects.all().delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class TournamentGroupList(generics.ListAPIView):
     serializer_class = TournamentGroupSerializer
     permission_classes = [IsAuthenticated]
