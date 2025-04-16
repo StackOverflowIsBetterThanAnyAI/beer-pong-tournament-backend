@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Team
+from .models import Team, TournamentGroup
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -60,3 +60,20 @@ class TeamSerializer(serializers.ModelSerializer):
             )
 
         return data
+
+
+class TournamentGroupSerializer(serializers.ModelSerializer):
+    teams = TeamSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = TournamentGroup
+        fields = ["id", "name", "teams", "created_at"]
+        extra_kwargs = {"name": {"read_only": True}}
+
+    def create(self, validated_data):
+        teams = validated_data.pop("teams")
+        group = TournamentGroup.objects.create(
+            author=self.context["request"].user, **validated_data
+        )
+        group.teams.set(teams)
+        return group
