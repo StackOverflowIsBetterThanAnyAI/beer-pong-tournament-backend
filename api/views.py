@@ -14,7 +14,7 @@ class TeamListCreate(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        return Team.objects.filter(author=user)
+        return Team.objects.all()
 
     def perform_create(self, serializer):
         if serializer.is_valid():
