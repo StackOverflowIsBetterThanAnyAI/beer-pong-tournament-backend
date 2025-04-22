@@ -18,7 +18,7 @@ class TeamListCreate(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         if serializer.is_valid():
-            serializer.save(author=self.request.user)
+            serializer.save()
         else:
             print(serializer.errors)
 

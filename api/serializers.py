@@ -20,8 +20,7 @@ class TeamSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Team
-        fields = ["id", "name", "member_one", "member_two", "created_at", "author"]
-        extra_kwargs = {"author": {"read_only": True}}
+        fields = ["id", "name", "member_one", "member_two", "created_at"]
 
     def validate(self, data):
         if Team.objects.count() >= 32:
@@ -72,8 +71,6 @@ class TournamentGroupSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         teams = validated_data.pop("teams")
-        group = TournamentGroup.objects.create(
-            author=self.context["request"].user, **validated_data
-        )
+        group = TournamentGroup.objects.create(**validated_data)
         group.teams.set(teams)
         return group
