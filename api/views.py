@@ -1,11 +1,28 @@
 from django.contrib.auth.models import User
-from rest_framework import generics, status
+from rest_framework import generics, mixins, status, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Team, TournamentGroup
-from .serializers import TeamSerializer, UserSerializer, TournamentGroupSerializer
+from .models import Game, Team, TournamentGroup
+from .serializers import (
+    GameSerializer,
+    TeamSerializer,
+    UserSerializer,
+    TournamentGroupSerializer,
+)
+from .utils import generate_games_for_group
+
+
+class GameViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+):
+    queryset = Game.objects.all()
+    serializer_class = GameSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class TeamListCreate(generics.ListCreateAPIView):
@@ -76,6 +93,7 @@ class TournamentGroupBulkCreate(APIView):
             group.teams.set(teams)
             group.name = f"Group {index}"
             group.save()
+            generate_games_for_group(group)
             created_groups.append(TournamentGroupSerializer(group).data)
 
         return Response(created_groups, status=status.HTTP_201_CREATED)

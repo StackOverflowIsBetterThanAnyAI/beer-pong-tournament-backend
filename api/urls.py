@@ -1,5 +1,9 @@
-from django.urls import path
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
 from . import views
+
+router = DefaultRouter()
+router.register(r"games", views.GameViewSet, basename="games")
 
 urlpatterns = [
     path("teams/", views.TeamListCreate.as_view(), name="team-list"),
@@ -11,4 +15,5 @@ urlpatterns = [
         name="group-bulk",
     ),
     path("groups/delete/", views.TournamentGroupDelete.as_view(), name="group-delete"),
+    path("", include(router.urls)),
 ]

@@ -1,16 +1,24 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Team, TournamentGroup
+from .models import Game, Team, TournamentGroup
 
 
-class UserSerializer(serializers.ModelSerializer):
+class GameSerializer(serializers.ModelSerializer):
+    group = serializers.CharField(source="group.name", read_only=True)
+    team1 = serializers.CharField(source="team1.name", read_only=True)
+    team2 = serializers.CharField(source="team2.name", read_only=True)
+
     class Meta:
-        model = User
-        fields = ["id", "username", "password"]
-        extra_kwargs = {"password": {"write_only": True}}
-
-    def create(self, validated_data):
-        return User.objects.create_user(**validated_data)
+        model = Game
+        fields = [
+            "id",
+            "group",
+            "team1",
+            "team2",
+            "score_team1",
+            "score_team2",
+            "played",
+        ]
 
 
 class TeamSerializer(serializers.ModelSerializer):
@@ -74,3 +82,13 @@ class TournamentGroupSerializer(serializers.ModelSerializer):
         group = TournamentGroup.objects.create(**validated_data)
         group.teams.set(teams)
         return group
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "username", "password"]
+        extra_kwargs = {"password": {"write_only": True}}
+
+    def create(self, validated_data):
+        return User.objects.create_user(**validated_data)
