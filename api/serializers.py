@@ -20,6 +20,17 @@ class GameSerializer(serializers.ModelSerializer):
             "played",
         ]
 
+    def validate(self, data):
+        score1 = data.get("score_team1")
+        score2 = data.get("score_team2")
+
+        for score in [score1, score2]:
+            if score is not None and (score < 0 or score > 10):
+                raise serializers.ValidationError(
+                    {"error": "Scores must be between 0 and 10."}
+                )
+        return data
+
 
 class TeamSerializer(serializers.ModelSerializer):
     name = serializers.CharField(min_length=5, max_length=20)
