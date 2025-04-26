@@ -39,19 +39,20 @@ class GroupStandingsView(APIView):
                     "points": 0,
                     "cups_scored": 0,
                     "cups_conceded": 0,
-                    "cup_difference": 0,
+                    "cup_difference": "0",
                     "played": 0,
                 }
             )
+
+            teams_in_group = group.teams.all()
+            for team in teams_in_group:
+                standings[team.id]["team"] = team.name
 
             games = Game.objects.filter(group=group, played=True)
 
             for game in games:
                 t1 = game.team1
                 t2 = game.team2
-
-                standings[t1.id]["team"] = t1.name
-                standings[t2.id]["team"] = t2.name
 
                 standings[t1.id]["cups_scored"] += game.score_team1
                 standings[t1.id]["cups_conceded"] += game.score_team2
