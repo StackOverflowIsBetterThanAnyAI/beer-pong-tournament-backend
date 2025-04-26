@@ -69,14 +69,35 @@ class GroupStandingsView(APIView):
                     standings[t1.id]["points"] += 1
                     standings[t2.id]["points"] += 1
 
+            formatted_standings = []
+
             for s in standings.values():
-                s["cup_difference"] = s["cups_scored"] - s["cups_conceded"]
+                cup_diff = s["cups_scored"] - s["cups_conceded"]
+
+                if cup_diff > 0:
+                    cup_diff_formatted = f"+{cup_diff}"
+                else:
+                    cup_diff_formatted = str(cup_diff)
+
+                formatted_standings.append(
+                    {
+                        "team": s["team"],
+                        "points": s["points"],
+                        "cups_scored": s["cups_scored"],
+                        "cups_conceded": s["cups_conceded"],
+                        "cup_difference": cup_diff_formatted,
+                        "played": s["played"],
+                    }
+                )
 
             group_data = {
                 "group": group.name,
                 "standings": sorted(
-                    standings.values(),
-                    key=lambda x: (-x["points"], -x["cup_difference"]),
+                    formatted_standings,
+                    key=lambda x: (
+                        -x["points"],
+                        -int(x["cup_difference"].replace("+", "")),
+                    ),
                 ),
             }
 
