@@ -80,6 +80,20 @@ class TeamSerializer(serializers.ModelSerializer):
         return data
 
 
+class TeamStandingSerializer(serializers.Serializer):
+    team = serializers.CharField()
+    points = serializers.IntegerField()
+    cups_scored = serializers.IntegerField()
+    cups_conceded = serializers.IntegerField()
+    cup_difference = serializers.IntegerField()
+    played = serializers.IntegerField()
+
+
+class StandingsSerializer(serializers.Serializer):
+    group = serializers.CharField()
+    standings = TeamStandingSerializer(many=True)
+
+
 class TournamentGroupSerializer(serializers.ModelSerializer):
     teams = TeamSerializer(many=True, read_only=True)
 

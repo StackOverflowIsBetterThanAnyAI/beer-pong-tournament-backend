@@ -15,5 +15,8 @@ urlpatterns = [
         name="group-bulk",
     ),
     path("groups/delete/", views.TournamentGroupDelete.as_view(), name="group-delete"),
+    path(
+        "groups/standings/", views.GroupStandingsView.as_view(), name="group-standings"
+    ),
     path("", include(router.urls)),
 ]

@@ -1,3 +1,4 @@
+from collections import defaultdict
 from django.contrib.auth.models import User
 from rest_framework import generics, mixins, status, viewsets
 from rest_framework.exceptions import ValidationError
@@ -7,9 +8,10 @@ from rest_framework.views import APIView
 from .models import Game, Team, TournamentGroup
 from .serializers import (
     GameSerializer,
+    StandingsSerializer,
     TeamSerializer,
-    UserSerializer,
     TournamentGroupSerializer,
+    UserSerializer,
 )
 from .utils import generate_games_for_group
 
@@ -23,6 +25,64 @@ class GameViewSet(
     queryset = Game.objects.all()
     serializer_class = GameSerializer
     permission_classes = [IsAuthenticated]
+
+
+class GroupStandingsView(APIView):
+    def get(self, request):
+        groups = TournamentGroup.objects.all()
+        result = []
+
+        for group in groups:
+            standings = defaultdict(
+                lambda: {
+                    "team": "",
+                    "points": 0,
+                    "cups_scored": 0,
+                    "cups_conceded": 0,
+                    "cup_difference": 0,
+                    "played": 0,
+                }
+            )
+
+            games = Game.objects.filter(group=group, played=True)
+
+            for game in games:
+                t1 = game.team1
+                t2 = game.team2
+
+                standings[t1.id]["team"] = t1.name
+                standings[t2.id]["team"] = t2.name
+
+                standings[t1.id]["cups_scored"] += game.score_team1
+                standings[t1.id]["cups_conceded"] += game.score_team2
+                standings[t1.id]["played"] += 1
+
+                standings[t2.id]["cups_scored"] += game.score_team2
+                standings[t2.id]["cups_conceded"] += game.score_team1
+                standings[t2.id]["played"] += 1
+
+                if game.score_team1 > game.score_team2:
+                    standings[t1.id]["points"] += 3
+                elif game.score_team1 < game.score_team2:
+                    standings[t2.id]["points"] += 3
+                else:
+                    standings[t1.id]["points"] += 1
+                    standings[t2.id]["points"] += 1
+
+            for s in standings.values():
+                s["cup_difference"] = s["cups_scored"] - s["cups_conceded"]
+
+            group_data = {
+                "group": group.name,
+                "standings": sorted(
+                    standings.values(),
+                    key=lambda x: (-x["points"], -x["cup_difference"]),
+                ),
+            }
+
+            result.append(group_data)
+
+        return Response(result, status=status.HTTP_200_OK)
 
 
 class TeamListCreate(generics.ListCreateAPIView):
