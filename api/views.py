@@ -8,11 +8,11 @@ from rest_framework.views import APIView
 from .models import Game, Team, TournamentGroup
 from .serializers import (
     GameSerializer,
-    StandingsSerializer,
     TeamSerializer,
     TournamentGroupSerializer,
     UserSerializer,
 )
+from .permissions import IsAdminUser
 from .utils import generate_games_for_group
 
 
@@ -124,7 +124,7 @@ class TeamListCreate(generics.ListCreateAPIView):
 
 class TeamDelete(generics.DestroyAPIView):
     serializer_class = TeamSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser, IsAuthenticated]
 
     def get_queryset(self):
         return Team.objects.all()
@@ -142,7 +142,7 @@ class TournamentGroupCreate(generics.CreateAPIView):
 
 
 class TournamentGroupBulkCreate(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser, IsAuthenticated]
 
     def post(self, request):
         groups_data = request.data.get("groups", [])
