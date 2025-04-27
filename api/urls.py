@@ -18,5 +18,6 @@ urlpatterns = [
     path(
         "groups/standings/", views.GroupStandingsView.as_view(), name="group-standings"
     ),
+    path("me/", views.MeView.as_view(), name="me"),
     path("", include(router.urls)),
 ]

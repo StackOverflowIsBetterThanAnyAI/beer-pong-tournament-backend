@@ -136,6 +136,18 @@ class CreateUserView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
 
+class MeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        return Response(
+            {
+                "is_staff": user.is_staff,
+            }
+        )
+
+
 class TournamentGroupCreate(generics.CreateAPIView):
     serializer_class = TournamentGroupSerializer
     permission_classes = [IsAuthenticated]
