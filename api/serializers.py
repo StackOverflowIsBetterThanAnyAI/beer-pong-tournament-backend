@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Game, Team, TournamentGroup
+from .models import Game, KnockoutGame, Team, TournamentGroup
 
 
 class GameSerializer(serializers.ModelSerializer):
@@ -30,6 +30,27 @@ class GameSerializer(serializers.ModelSerializer):
                     {"error": "Scores must be between 0 and 10."}
                 )
         return data
+
+
+class KnockoutGameSerializer(serializers.ModelSerializer):
+    team1_name = serializers.CharField(source="team1.name", read_only=True)
+    team2_name = serializers.CharField(source="team2.name", read_only=True)
+    round_display = serializers.CharField(source="get_round_display", read_only=True)
+
+    class Meta:
+        model = KnockoutGame
+        fields = [
+            "id",
+            "team1",
+            "team1_name",
+            "team2",
+            "team2_name",
+            "score_team1",
+            "score_team2",
+            "played",
+            "round",
+            "round_display",
+        ]
 
 
 class TeamSerializer(serializers.ModelSerializer):

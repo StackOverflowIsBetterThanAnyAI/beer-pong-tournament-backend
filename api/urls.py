@@ -18,6 +18,16 @@ urlpatterns = [
     path(
         "groups/standings/", views.GroupStandingsView.as_view(), name="group-standings"
     ),
+    path(
+        "ko-stage/",
+        views.KnockoutGameListView.as_view(),
+        name="list_knockout_games",
+    ),
+    path(
+        "ko-stage/generate/",
+        views.GenerateKnockoutStageView.as_view(),
+        name="generate-ko-stage",
+    ),
     path("me/", views.MeView.as_view(), name="me"),
     path("", include(router.urls)),
 ]

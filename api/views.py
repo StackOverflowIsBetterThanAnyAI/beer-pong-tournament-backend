@@ -2,18 +2,20 @@ from collections import defaultdict
 from django.contrib.auth.models import User
 from rest_framework import generics, mixins, status, viewsets
 from rest_framework.exceptions import ValidationError
+from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Game, Team, TournamentGroup
+from .models import Game, KnockoutGame, Team, TournamentGroup
 from .serializers import (
     GameSerializer,
+    KnockoutGameSerializer,
     TeamSerializer,
     TournamentGroupSerializer,
     UserSerializer,
 )
 from .permissions import IsAdminUser
-from .utils import generate_games_for_group
+from .utils import generate_games_for_group, generate_knockout_stage
 
 
 class GameViewSet(
@@ -25,6 +27,25 @@ class GameViewSet(
     queryset = Game.objects.all()
     serializer_class = GameSerializer
     permission_classes = [IsAuthenticated]
+
+
+class GenerateKnockoutStageView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def post(self, request):
+        try:
+            generate_knockout_stage()
+            return Response(
+                status=status.HTTP_201_CREATED,
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class KnockoutGameListView(ListAPIView):
+    queryset = KnockoutGame.objects.all().order_by("round")
+    serializer_class = KnockoutGameSerializer
+    permission_classes = [IsAdminUser]
 
 
 class GroupStandingsView(APIView):
