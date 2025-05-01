@@ -23,6 +23,7 @@ urlpatterns = [
         views.KnockoutGameListView.as_view(),
         name="list_knockout_games",
     ),
+    path("ko-stage/<int:pk>/", views.UpdateKnockoutGameScoreView.as_view()),
     path(
         "ko-stage/generate/",
         views.GenerateKnockoutStageView.as_view(),
