@@ -45,7 +45,7 @@ class GenerateKnockoutStageView(APIView):
 class KnockoutGameListView(ListAPIView):
     queryset = KnockoutGame.objects.all().order_by("round")
     serializer_class = KnockoutGameSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated]
 
 
 class GroupStandingsView(APIView):
@@ -228,3 +228,19 @@ class TournamentGroupList(generics.ListAPIView):
 
     def get_queryset(self):
         return TournamentGroup.objects.all()
+
+
+class UpdateKnockoutGameScoreView(APIView):
+    def patch(self, request, pk):
+        try:
+            game = KnockoutGame.objects.get(pk=pk)
+        except KnockoutGame.DoesNotExist:
+            return Response(
+                {"error": "Game not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = KnockoutGameSerializer(game, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
