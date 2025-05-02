@@ -52,7 +52,7 @@ class KnockoutGame(models.Model):
         ("R16", "Round of 16"),
         ("QF", "Quarter Final"),
         ("SF", "Semi Final"),
-        ("F", "Final"),
+        ("F", "Grand Final"),
     ]
 
     team1 = models.ForeignKey(
