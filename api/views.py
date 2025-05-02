@@ -151,10 +151,16 @@ class TeamListCreate(generics.ListCreateAPIView):
         return Team.objects.all()
 
     def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save()
-        else:
-            print(serializer.errors)
+        from .models import Game
+
+        if Game.objects.exists():
+            raise ValidationError(
+                {
+                    "error": "Teams cannot be registered after the tournament has started."
+                }
+            )
+
+        serializer.save()
 
 
 class TeamDelete(generics.DestroyAPIView):
