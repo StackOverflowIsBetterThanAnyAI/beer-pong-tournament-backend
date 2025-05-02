@@ -23,11 +23,21 @@ urlpatterns = [
         views.KnockoutGameListView.as_view(),
         name="list_knockout_games",
     ),
+    path(
+        "ko-stage/delete/",
+        views.DeleteKnockoutStageView.as_view(),
+        name="delete-ko-stage",
+    ),
     path("ko-stage/<int:pk>/", views.UpdateKnockoutGameScoreView.as_view()),
     path(
         "ko-stage/generate/",
         views.GenerateKnockoutStageView.as_view(),
         name="generate-ko-stage",
+    ),
+    path(
+        "ko-stage/next-round/",
+        views.GenerateNextKnockoutRoundView.as_view(),
+        name="generate-next-ko-round",
     ),
     path("me/", views.MeView.as_view(), name="me"),
     path("", include(router.urls)),

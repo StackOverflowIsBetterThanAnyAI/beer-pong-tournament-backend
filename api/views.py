@@ -1,5 +1,6 @@
 from collections import defaultdict
 from django.contrib.auth.models import User
+from django.db.models import Case, When, IntegerField
 from rest_framework import generics, mixins, status, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListAPIView
@@ -43,7 +44,20 @@ class GenerateKnockoutStageView(APIView):
 
 
 class KnockoutGameListView(ListAPIView):
-    queryset = KnockoutGame.objects.all().order_by("round")
+    queryset = (
+        KnockoutGame.objects.all()
+        .annotate(
+            round_order=Case(
+                When(round="R16", then=1),
+                When(round="QF", then=2),
+                When(round="SF", then=3),
+                When(round="F", then=4),
+                default=99,
+                output_field=IntegerField(),
+            )
+        )
+        .order_by("round_order", "id")
+    )
     serializer_class = KnockoutGameSerializer
     permission_classes = [IsAuthenticated]
 
@@ -244,3 +258,60 @@ class UpdateKnockoutGameScoreView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DeleteKnockoutStageView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        deleted_count, _ = KnockoutGame.objects.all().delete()
+        return Response(
+            {"message": f"{deleted_count} knockout games deleted."},
+            status=status.HTTP_200_OK,
+        )
+
+
+class GenerateNextKnockoutRoundView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def post(self, request):
+        current = request.data.get("current_round")
+        next_r = request.data.get("next_round")
+
+        if not current or not next_r:
+            return Response(
+                {"error": "Both 'current_round' and 'next_round' are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            current_games = KnockoutGame.objects.filter(round=current, played=True)
+
+            if current_games.count() % 2 != 0:
+                raise Exception("Uneven number of games.")
+
+            winners = []
+            for game in current_games:
+                if game.score_team1 > game.score_team2:
+                    winners.append(game.team1)
+                elif game.score_team2 > game.score_team1:
+                    winners.append(game.team2)
+                else:
+                    raise Exception(f"Tied game in knockout stage: {game.id}")
+
+            KnockoutGame.objects.filter(round=next_r).delete()
+
+            for i in range(0, len(winners), 2):
+                KnockoutGame.objects.create(
+                    team1=winners[i],
+                    team2=winners[i + 1],
+                    round=next_r,
+                )
+
+            return Response(
+                {"message": f"{len(winners)//2} games created for round {next_r}."},
+                status=status.HTTP_201_CREATED,
+            )
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
