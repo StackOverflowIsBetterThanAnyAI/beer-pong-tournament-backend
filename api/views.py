@@ -315,3 +315,22 @@ class GenerateNextKnockoutRoundView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ResetTournamentView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def post(self, request):
+        try:
+            KnockoutGame.objects.all().delete()
+            Game.objects.all().delete()
+            TournamentGroup.objects.all().delete()
+            Team.objects.all().delete()
+
+            return Response(
+                {"message": "Tournament reset successful."}, status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

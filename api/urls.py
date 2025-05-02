@@ -39,6 +39,11 @@ urlpatterns = [
         views.GenerateNextKnockoutRoundView.as_view(),
         name="generate-next-ko-round",
     ),
+    path(
+        "reset-tournament/",
+        views.ResetTournamentView.as_view(),
+        name="reset-tournament",
+    ),
     path("me/", views.MeView.as_view(), name="me"),
     path("", include(router.urls)),
 ]
