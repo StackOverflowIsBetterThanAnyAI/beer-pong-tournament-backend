@@ -37,10 +37,14 @@ class GenerateKnockoutStageView(APIView):
         try:
             generate_knockout_stage()
             return Response(
+                {"success": True, "message": "Knockout stage generated successfully."},
                 status=status.HTTP_201_CREATED,
             )
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"success": False, "error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 class KnockoutGameListView(ListAPIView):
@@ -154,13 +158,23 @@ class TeamListCreate(generics.ListCreateAPIView):
         from .models import Game
 
         if Game.objects.exists():
-            raise ValidationError(
+            return Response(
                 {
-                    "error": "Teams cannot be registered after the tournament has started."
-                }
+                    "success": False,
+                    "error": "Teams cannot be registered after the tournament has started.",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         serializer.save()
+        return Response(
+            {
+                "success": True,
+                "message": "Team created successfully.",
+                "data": serializer.data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class TeamDelete(generics.DestroyAPIView):
@@ -169,6 +183,13 @@ class TeamDelete(generics.DestroyAPIView):
 
     def get_queryset(self):
         return Team.objects.all()
+
+    def delete(self, request, *args, **kwargs):
+        self.destroy(request, *args, **kwargs)
+        return Response(
+            {"success": True, "message": "Team deleted successfully."},
+            status=status.HTTP_200_OK,
+        )
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -184,14 +205,28 @@ class MeView(APIView):
         user = request.user
         return Response(
             {
-                "is_staff": user.is_staff,
-            }
+                "success": True,
+                "message": "User info fetched successfully.",
+                "data": {"is_staff": user.is_staff},
+            },
+            status=status.HTTP_200_OK,
         )
 
 
 class TournamentGroupCreate(generics.CreateAPIView):
     serializer_class = TournamentGroupSerializer
     permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        return Response(
+            {
+                "success": True,
+                "message": "Tournament group created successfully.",
+                "data": response.data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class TournamentGroupBulkCreate(APIView):
@@ -239,7 +274,10 @@ class TournamentGroupDelete(APIView):
 
     def delete(self, request):
         TournamentGroup.objects.all().delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {"success": True, "message": "All tournament groups deleted."},
+            status=status.HTTP_200_OK,
+        )
 
 
 class TournamentGroupList(generics.ListAPIView):
@@ -249,6 +287,18 @@ class TournamentGroupList(generics.ListAPIView):
     def get_queryset(self):
         return TournamentGroup.objects.all()
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(
+            {
+                "success": True,
+                "message": "Groups fetched successfully.",
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
 
 class UpdateKnockoutGameScoreView(APIView):
     def patch(self, request, pk):
@@ -256,14 +306,24 @@ class UpdateKnockoutGameScoreView(APIView):
             game = KnockoutGame.objects.get(pk=pk)
         except KnockoutGame.DoesNotExist:
             return Response(
-                {"error": "Game not found"}, status=status.HTTP_404_NOT_FOUND
+                {"success": False, "error": "Game not found"},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         serializer = KnockoutGameSerializer(game, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {
+                    "success": True,
+                    "message": "Score updated successfully.",
+                    "data": serializer.data,
+                }
+            )
+        return Response(
+            {"success": False, "error": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
 
 class DeleteKnockoutStageView(APIView):
@@ -272,7 +332,7 @@ class DeleteKnockoutStageView(APIView):
     def delete(self, request):
         deleted_count, _ = KnockoutGame.objects.all().delete()
         return Response(
-            {"message": f"{deleted_count} knockout games deleted."},
+            {"success": True, "message": f"{deleted_count} knockout games deleted."},
             status=status.HTTP_200_OK,
         )
 
@@ -315,12 +375,17 @@ class GenerateNextKnockoutRoundView(APIView):
                 )
 
             return Response(
-                {"message": f"{len(winners)//2} games created for round {next_r}."},
+                {
+                    "success": True,
+                    "message": f"{len(winners)//2} games created for round {next_r}.",
+                },
                 status=status.HTTP_201_CREATED,
             )
 
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"success": False, "error": str(e)}, status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class ResetTournamentView(APIView):
@@ -334,9 +399,11 @@ class ResetTournamentView(APIView):
             Team.objects.all().delete()
 
             return Response(
-                {"message": "Tournament reset successful."}, status=status.HTTP_200_OK
+                {"success": True, "message": "Tournament reset successful."},
+                status=status.HTTP_200_OK,
             )
         except Exception as e:
             return Response(
-                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"success": False, "error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
