@@ -154,7 +154,7 @@ class TeamListCreate(generics.ListCreateAPIView):
         user = self.request.user
         return Team.objects.all()
 
-    def perform_create(self, serializer):
+    def create(self, request, *args, **kwargs):
         from .models import Game
 
         if Game.objects.exists():
@@ -166,7 +166,9 @@ class TeamListCreate(generics.ListCreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        serializer.save()
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
         return Response(
             {
                 "success": True,
