@@ -245,9 +245,13 @@ class TournamentGroupBulkCreate(APIView):
         if len(all_team_ids) % 4 != 0:
             raise ValidationError({"error": "Teams must be grouped in multiples of 4."})
 
-        if not 8 <= len(all_team_ids) <= 32:
+        if (
+            not 8 <= len(all_team_ids) <= 32
+            or len(all_team_ids) == 20
+            or len(all_team_ids) % 4 != 0
+        ):
             raise ValidationError(
-                {"error": "Total number of teams must be between 8 and 32."}
+                {"error": "Total number of teams must be between 8 and 32, but not 20."}
             )
 
         existing_teams = Team.objects.filter(id__in=all_team_ids)

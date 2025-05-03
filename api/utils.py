@@ -81,7 +81,7 @@ def generate_knockout_stage():
     for standings in group_standings.values():
         teams_for_ko.extend([standings[0]["team"], standings[1]["team"]])
 
-    if group_count in [3, 5, 6, 7]:
+    if group_count in [3, 6, 7]:
         third_place_teams = [s[2] for s in group_standings.values()]
         third_place_teams_sorted = sorted(
             third_place_teams,
@@ -91,7 +91,7 @@ def generate_knockout_stage():
                 -x["cups_scored"],
             ),
         )
-        needed = {3: 2, 5: 2, 6: 4, 7: 2}[group_count]
+        needed = {3: 2, 6: 4, 7: 2}[group_count]
         teams_for_ko.extend(t["team"] for t in third_place_teams_sorted[:needed])
 
     ko_team_count = len(teams_for_ko)
