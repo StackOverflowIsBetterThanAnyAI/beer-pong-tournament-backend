@@ -25,7 +25,7 @@ class GameViewSet(
     mixins.UpdateModelMixin,
     viewsets.GenericViewSet,
 ):
-    queryset = Game.objects.all()
+    queryset = Game.objects.all().order_by("id")
     serializer_class = GameSerializer
     permission_classes = [IsAuthenticated]
 
