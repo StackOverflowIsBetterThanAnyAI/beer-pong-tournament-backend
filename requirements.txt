@@ -1,5 +1,6 @@
 asgiref
 gunicorn
+dj-database-url
 Django
 django-cors-headers
 djangorestframework
