@@ -15,6 +15,7 @@ ALLOWED_HOSTS = [
     "beer-pong-tournament.vercel.app",
     "beer-pong-tournament-backend.onrender.com",
     "localhost",
+    "127.0.0.1",
 ]
 
 REST_FRAMEWORK = {
