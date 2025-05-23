@@ -1,7 +1,8 @@
 from collections import defaultdict
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models import Case, When, IntegerField
-from rest_framework import generics, mixins, status, viewsets
+from rest_framework import generics, mixins, permissions, status, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -412,4 +413,25 @@ class ResetTournamentView(APIView):
             return Response(
                 {"success": False, "error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class DeleteCypressTestUserView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def delete(self, request):
+        if not settings.DEBUG:
+            return Response(
+                {"error": "This endpoint is only available in DEBUG mode."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            user = User.objects.get(username="CypressTestUser")
+            user.delete()
+            return Response({"success": True})
+        except User.DoesNotExist:
+            return Response(
+                {"error": "CypressTestUser does not exist."},
+                status=status.HTTP_204_NO_CONTENT,
             )
